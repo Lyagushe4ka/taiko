@@ -1,0 +1,17 @@
+{
+  "name": "taiko",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.4",
+    "ethers": "^6.13.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
