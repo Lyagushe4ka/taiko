@@ -155,7 +155,11 @@ export const makeWrapTx = async (wallet: Wallet): Promise<boolean> => {
   const wethBalance = await retry(() => contract.balanceOf(wallet.address));
 
   if (wethBalance === 0n) {
-    return wrap(wallet);
+    const wrapping = await wrap(wallet);
+
+    if (!wrapping) {
+      return false;
+    }
   }
 
   return unwrap(wallet);
