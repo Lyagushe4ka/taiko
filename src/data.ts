@@ -79,3 +79,35 @@ export function readKeys(): string[] {
 
   return keys;
 }
+
+export function readData(): { keys: string[]; proxies: string[] } {
+  const keys = fs.readFileSync('./deps/keys.txt', 'utf8').replaceAll('\r', '').split('\n');
+
+  keys.every((key, index) => {
+    if (!((key.startsWith('0x') && key.length === 66) || key.length === 64)) {
+      throw new Error(`Invalid key length at line ${index + 1}.`);
+    }
+    return true;
+  });
+
+  let proxies = fs.readFileSync('./deps/proxies.txt', 'utf8').replaceAll('\r', '').split('\n');
+
+  const proxyRegex = /^[a-zA-Z0-9]+:[a-zA-Z0-9]+@[0-9.]+:[0-9]+$/;
+
+  proxies.every((proxy, index) => {
+    if (!proxyRegex.test(proxy)) {
+      throw new Error(`Invalid proxy at line ${index + 1}.`);
+    }
+    return true;
+  });
+
+  proxies = proxies.map((proxy) => {
+    return (proxy = 'http://' + proxy);
+  });
+
+  if (keys.length !== proxies.length) {
+    throw new Error('Number of keys and proxies must be equal.');
+  }
+
+  return { keys, proxies };
+}
