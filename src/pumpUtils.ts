@@ -41,8 +41,8 @@ export const getSig = async (address: string, proxy: string) => {
 
     pumpDB.set(address, true);
     return false;
-  } catch (e) {
-    console.log('Error while getting sig:');
+  } catch (e: any) {
+    console.log('Error while getting sig:', e.message);
     return false;
   }
 };
