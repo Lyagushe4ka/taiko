@@ -3,5 +3,8 @@
 package-lock.json
 
 /deps/keys.txt
+/deps/proxies.txt
+/deps/refs.txt
 /deps/config.ts
 /deps/stats.json
+/deps/pumpstats.json

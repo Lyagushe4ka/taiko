@@ -74,7 +74,31 @@ export const isClaimed = async (wallet: Wallet): Promise<boolean> => {
 export const claim = async (wallet: Wallet, sign: string, amount: string, ref: string) => {
   const contract = new Contract(
     '0xCe64dA1992Cc2409E0f0CdCAAd64f8dd2dBe0093',
-    'function claim(uint256 amount, bytes calldata signature, address refUser)',
+    [
+      {
+        inputs: [
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'bytes',
+            name: 'signature',
+            type: 'bytes',
+          },
+          {
+            internalType: 'address',
+            name: 'refUser',
+            type: 'address',
+          },
+        ],
+        name: 'claim',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+      },
+    ],
     wallet,
   );
 
@@ -88,12 +112,11 @@ export const claim = async (wallet: Wallet, sign: string, amount: string, ref: s
     }
 
     console.log('Claimed on wallet: ', wallet.address);
-    console.log('\n');
     console.log(`TX: https://scrollscan.com/tx/${receipt.hash}`);
-    console.log('\n\n');
 
     return true;
-  } catch (e) {
+  } catch (e: any) {
+    console.log('Error while claiming:', e.message);
     return false;
   }
 };

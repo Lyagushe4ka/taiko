@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-export let PUMP_STATS: Map<string, boolean>;
+export let PUMP_STATS: Record<string, boolean>;
 
 export const pumpDB = {
   load() {
@@ -8,36 +8,39 @@ export const pumpDB = {
       const fileData = fs.readFileSync('./deps/pumpstats.json', 'utf8');
 
       if (fileData === '') {
-        PUMP_STATS = new Map();
+        PUMP_STATS = {};
         return;
       }
 
       PUMP_STATS = JSON.parse(fileData);
     } else {
-      PUMP_STATS = new Map();
+      PUMP_STATS = {};
     }
   },
 
   init(wallet: string) {
-    PUMP_STATS.set(wallet, false);
+    PUMP_STATS[wallet] = false;
   },
 
   get(wallet: string) {
-    if (!PUMP_STATS.has(wallet)) {
+    if (!PUMP_STATS[wallet]) {
       this.init(wallet);
     }
-    return PUMP_STATS.get(wallet) ?? false;
+    return PUMP_STATS[wallet];
   },
 
   set(wallet: string, value: boolean) {
-    if (!PUMP_STATS.has(wallet)) {
+    if (!PUMP_STATS[wallet]) {
       this.init(wallet);
     }
 
-    PUMP_STATS.set(wallet, value);
+    PUMP_STATS[wallet] = value;
   },
 
   save() {
-    fs.writeFileSync('./deps/stats.json', PUMP_STATS ? JSON.stringify(PUMP_STATS, null, 2) : '');
+    fs.writeFileSync(
+      './deps/pumpstats.json',
+      PUMP_STATS ? JSON.stringify(PUMP_STATS, null, 2) : '',
+    );
   },
 };
