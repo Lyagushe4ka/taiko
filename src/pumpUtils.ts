@@ -1,9 +1,21 @@
 import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { pumpDB } from './pumpStats';
-import { Contract, TransactionResponse, Wallet } from 'ethers';
+import { Contract, JsonRpcProvider, Wallet } from 'ethers';
 import { retry } from './utils';
 import fs from 'fs';
+
+const GLOBAL_PROVIDER = new JsonRpcProvider('https://rpc.scroll.io');
+
+const RPCS = [
+  'https://rpc.scroll.io',
+  'https://scroll-mainnet.public.blastapi.io',
+  'https://rpc.ankr.com/scroll',
+  'https://scroll-mainnet.chainstacklabs.com',
+  'https://scroll.api.onfinality.io/public',
+  'https://scroll.drpc.org',
+  'https://1rpc.io/scroll',
+];
 
 export function readRefs() {
   const keys = fs.readFileSync('./deps/refs.txt', 'utf8').replaceAll('\r', '').split('\n');
@@ -30,13 +42,16 @@ export const getSig = async (address: string, proxy: string) => {
   const agent = new HttpsProxyAgent(proxy, { rejectUnauthorized: false });
 
   try {
-    const { data } = await axios.get(
-      `https://api.scrollpump.xyz/api/Airdrop/GetSign?address=${address}`,
-      { httpsAgent: agent, httpAgent: agent },
-    );
+    const response: any = await Promise.race([
+      axios.get(`https://api.scrollpump.xyz/api/Airdrop/GetSign?address=${address}`, {
+        httpsAgent: agent,
+        httpAgent: agent,
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(false), 1000 * 90)),
+    ]);
 
-    if (data && data.success) {
-      return data.data as { sign: string; amount: string };
+    if (response && response.data && response.data.success) {
+      return response.data.data as { sign: string; amount: string };
     }
 
     pumpDB.set(address, true);
@@ -47,7 +62,8 @@ export const getSig = async (address: string, proxy: string) => {
   }
 };
 
-export const isClaimed = async (wallet: Wallet): Promise<boolean> => {
+export const isClaimed = async (key: string): Promise<boolean> => {
+  const wallet = new Wallet(key, GLOBAL_PROVIDER);
   const contract = new Contract(
     '0xCe64dA1992Cc2409E0f0CdCAAd64f8dd2dBe0093',
     [
@@ -71,7 +87,11 @@ export const isClaimed = async (wallet: Wallet): Promise<boolean> => {
   }
 };
 
-export const claim = async (wallet: Wallet, sign: string, amount: string, ref: string) => {
+export const claim = async (key: string, sign: string, amount: string, ref: string) => {
+  const signers = RPCS.map((rpc) => {
+    return new Wallet(key, new JsonRpcProvider(rpc));
+  });
+  const wallet = new Wallet(key, GLOBAL_PROVIDER);
   const contract = new Contract(
     '0xCe64dA1992Cc2409E0f0CdCAAd64f8dd2dBe0093',
     [
@@ -103,9 +123,41 @@ export const claim = async (wallet: Wallet, sign: string, amount: string, ref: s
   );
 
   try {
-    const tx: TransactionResponse = await retry(() => contract.claim(amount, sign, ref), 2);
+    const feeData = await GLOBAL_PROVIDER.getFeeData();
 
-    const receipt = await tx.wait();
+    const gasLimit = await contract.claim.estimateGas(amount, sign, ref);
+
+    const nonce = await GLOBAL_PROVIDER.getTransactionCount(wallet.address);
+
+    const txData = await retry(
+      () =>
+        contract.claim.populateTransaction(amount, sign, ref, {
+          gasPrice: (feeData.gasPrice! / 100n) * 150n,
+          maxFeePerGas: undefined,
+          maxPriorityFeePerGas: undefined,
+          gasLimit: (gasLimit / 100n) * 130n,
+          type: 0,
+          nonce,
+        }),
+      2,
+    );
+
+    const txResponse = await retry(
+      () => Promise.any(signers.map((signer) => signer.sendTransaction(txData))),
+      2,
+    );
+
+    const receipt = await retry(
+      async () => {
+        const res = await GLOBAL_PROVIDER.getTransactionReceipt(txResponse.hash);
+        if (!res) {
+          throw new Error('Transaction not mined yet');
+        }
+        return res;
+      },
+      8,
+      20,
+    );
 
     if (!receipt) {
       return false;

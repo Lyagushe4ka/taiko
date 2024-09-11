@@ -1,14 +1,13 @@
-import { JsonRpcProvider, Wallet } from 'ethers';
+import { Wallet } from 'ethers';
 import { rndArrElement, sleep, timeout } from './src/utils';
 import { readData } from './src/data';
 import { pumpDB } from './src/pumpStats';
-import { claim, getSig, isClaimed, readRefs, rndKeyPair } from './src/pumputils';
+import { claim, getSig, isClaimed, readRefs, rndKeyPair } from './src/pumpUtils';
 
 async function main() {
   const { keys, proxies } = readData();
   pumpDB.load();
 
-  const provider = new JsonRpcProvider('https://rpc.ankr.com/scroll');
   const refs = readRefs();
 
   while (true) {
@@ -22,7 +21,7 @@ async function main() {
 
       const { key, proxy, index } = rndKeyPair(keys, proxies);
 
-      const wallet = new Wallet(key, provider);
+      const wallet = new Wallet(key);
       const address = wallet.address;
       console.log(`\nUsing wallet ${address}\n`);
 
@@ -33,7 +32,7 @@ async function main() {
         continue;
       }
 
-      const claimed = await isClaimed(wallet);
+      const claimed = await isClaimed(key);
 
       if (claimed) {
         console.log('Wallet already claimed, skipping');
@@ -53,7 +52,7 @@ async function main() {
 
       const ref = rndArrElement(refs);
 
-      const claiming = await claim(wallet, data.sign, data.amount, ref);
+      const claiming = await claim(key, data.sign, data.amount, ref);
 
       if (!claiming) {
         continue;
