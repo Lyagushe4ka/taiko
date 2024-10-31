@@ -37,7 +37,7 @@ export const getBalances = async (address: string): Promise<Balances | null> => 
   });
   balancesInEther['ETH'] = formatEther(nativeBal);
 
-  const rates = await getRate(Object.keys(MANTA_TOKENS));
+  const rates = await getRate([...Object.keys(MANTA_TOKENS), 'ETH']);
 
   if (!rates) {
     console.log('Error while getting token rates');
@@ -48,6 +48,8 @@ export const getBalances = async (address: string): Promise<Balances | null> => 
   Object.keys(MANTA_TOKENS).forEach((key, i) => {
     balancesInUsd[key] = (parseFloat(balancesInEther[key]) * rates[i]).toFixed(2);
   });
+
+  balancesInUsd['ETH'] = (parseFloat(balancesInEther['ETH']) * rates[rates.length - 1]).toFixed(2);
 
   return {
     balancesInWei,
