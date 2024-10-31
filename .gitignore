@@ -8,3 +8,6 @@ package-lock.json
 /deps/config.ts
 /deps/stats.json
 /deps/pumpstats.json
+/deps/mantaStats.json
+
+test.ts
