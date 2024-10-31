@@ -171,6 +171,7 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
   notZeroBalances = notZeroBalances.filter(([key]) => key !== 'WETH');
 
   if (notZeroBalances.length === 0) {
+    console.log('No tokens with balanc found to swap');
     return null;
   }
 
@@ -181,6 +182,7 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
     const bal = tokenWithBal[1];
 
     if (bal < minAmount) {
+      console.log('ETH balance is too low to swap from it');
       return null;
     }
 
@@ -191,6 +193,8 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
       amount = amount - minAmount;
 
       if (amount < 0n) {
+        console.log('ETH balance is too low to swap from it');
+
         return null;
       }
     }
@@ -198,6 +202,7 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
     const toData = getRoute('WETH');
 
     if (!toData) {
+      console.log('No route found for ETH');
       return null;
     }
 
@@ -218,6 +223,7 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
     const toData = getRoute(ticker as Tickers);
 
     if (!toData) {
+      console.log('No route found for', ticker);
       return null;
     }
 
