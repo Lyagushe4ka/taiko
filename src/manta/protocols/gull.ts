@@ -1,9 +1,10 @@
-import { Contract, formatUnits, Overrides, parseUnits, Wallet } from 'ethers';
+import { Contract, formatEther, formatUnits, Overrides, parseUnits, Wallet } from 'ethers';
 import { GullABI } from '../abi';
 import { MANTA_WETH_ADDRESS, Token } from '../constants';
 import { execTx, getRate, retry } from '../../utils';
 import { CONFIG_CONSTANTS, LIMITS } from '../../../deps/config';
 import { approve } from './utility';
+import { mantaDB } from '../stats';
 
 export const gullSwap = async (
   wallet: Wallet,
@@ -82,6 +83,10 @@ export const gullSwap = async (
     console.log('Error while swapping on gull');
     return null;
   }
+
+  const fee = parseFloat(formatEther(tx.fee));
+  const totalFees = mantaDB.getAll(wallet.address).fees + fee;
+  mantaDB.set(wallet.address, 'fees', totalFees);
 
   console.log(`Swapped ${tokenIn.ticker} to ${tokenOut.ticker} on gull`);
 

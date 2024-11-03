@@ -1,9 +1,10 @@
-import { ContractTransaction, formatUnits, JsonRpcProvider, Wallet } from 'ethers';
+import { ContractTransaction, formatEther, formatUnits, JsonRpcProvider, Wallet } from 'ethers';
 import { execTx, retry } from '../../utils';
 import axios from 'axios';
 import { CONFIG_CONSTANTS, LIMITS } from '../../../deps/config';
 import { MANTA_WETH_ADDRESS, Token } from '../constants';
 import { approve } from './utility';
+import { mantaDB } from '../stats';
 
 interface OpenOceanResponse {
   code: number;
@@ -95,6 +96,10 @@ export const openoceanSwap = async (
     console.log('OpenOcean: error executing tx');
     return null;
   }
+
+  const fee = parseFloat(formatEther(tx.fee));
+  const totalFees = mantaDB.getAll(wallet.address).fees + fee;
+  mantaDB.set(wallet.address, 'fees', totalFees);
 
   console.log(`Swapped ${tokenIn.ticker} to ${tokenOut.ticker} on openocean`);
 

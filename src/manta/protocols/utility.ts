@@ -16,6 +16,7 @@ import { CONFIG_CONSTANTS, LIMITS } from '../../../deps/config';
 import { Balances, getRoute } from '../utils';
 import { openoceanSwap } from './openocean';
 import { gullSwap } from './gull';
+import { mantaDB } from '../stats';
 
 export const approve = async (
   wallet: Wallet,
@@ -37,6 +38,10 @@ export const approve = async (
     console.log('Revoked on wallet: ', wallet.address);
   }
 
+  const fee = parseFloat(formatEther(receipt.fee));
+  const totalFees = mantaDB.getAll(wallet.address).fees + fee;
+  mantaDB.set(wallet.address, 'fees', totalFees);
+
   return receipt.hash;
 };
 
@@ -57,6 +62,10 @@ export const wrapOrUnwrap = async (wallet: Wallet, amount: bigint, isWrap: boole
     console.log('Error while wrapping or unwrapping on wallet: ', wallet.address);
     return null;
   }
+
+  const fee = parseFloat(formatEther(receipt.fee));
+  const totalFees = mantaDB.getAll(wallet.address).fees + fee;
+  mantaDB.set(wallet.address, 'fees', totalFees);
 
   console.log(isWrap ? 'Wrapped' : 'Unwrapped', 'on wallet: ', wallet.address);
 
@@ -98,6 +107,10 @@ export const dmailMsg = async (wallet: Wallet) => {
     console.log('Error while sending dmail on wallet: ', wallet.address);
     return null;
   }
+
+  const fee = parseFloat(formatEther(receipt.fee));
+  const totalFees = mantaDB.getAll(wallet.address).fees + fee;
+  mantaDB.set(wallet.address, 'fees', totalFees);
 
   console.log('Sent dmail on wallet: ', wallet.address);
 

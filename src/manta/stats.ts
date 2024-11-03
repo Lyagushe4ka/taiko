@@ -12,6 +12,7 @@ interface MantaStats {
 
 interface MantaStatsWithBalances extends MantaStats {
   balances: Record<string, string>;
+  fees: number;
 }
 
 export let MANTA_STATS: Record<string, MantaStatsWithBalances>;
@@ -43,6 +44,8 @@ export const mantaDB = {
       totalUtilityTxs,
 
       balances: {},
+
+      fees: 0,
     };
   },
 

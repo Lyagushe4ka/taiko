@@ -1,9 +1,9 @@
 import { Contract, formatEther, formatUnits, JsonRpcProvider } from 'ethers';
 import { CONFIG_CONSTANTS } from '../../deps/config';
 import { MulticallWrapper } from 'ethers-multicall-provider';
-import { Dexes, MANTA_TOKENS, ROUTES, Tickers, Token } from './constants';
+import { Dexes, MANTA_TOKENS, ROUTES, Tickers } from './constants';
 import { ABI } from '../constants';
-import { getRate, retry, rndArrElement } from '../utils';
+import { getRate, rndArrElement } from '../utils';
 
 export interface Balances {
   balancesInWei: Record<string, bigint>;
@@ -12,18 +12,31 @@ export interface Balances {
 }
 
 export const getBalances = async (address: string): Promise<Balances | null> => {
-  const provider = new JsonRpcProvider(CONFIG_CONSTANTS.mantaRpcs[0]);
-  const multicallProvider = MulticallWrapper.wrap(provider);
+  const rpcs = CONFIG_CONSTANTS.mantaRpcs;
 
-  const contracts = Object.values(MANTA_TOKENS).map(
-    (token) => new Contract(token.address, ABI, multicallProvider),
-  );
+  const providers = rpcs.map((rpc) => new JsonRpcProvider(rpc));
+  const multicallProviders = providers.map((provider) => MulticallWrapper.wrap(provider));
 
-  const tokenBalances = await retry(() =>
-    Promise.all(contracts.map((contract) => contract.balanceOf(address))),
-  );
+  let tokenBalances: bigint[] | null = null;
+  let nativeBal: bigint | null = null;
+  for (const provider of multicallProviders) {
+    try {
+      const contracts = Object.values(MANTA_TOKENS).map(
+        (token) => new Contract(token.address, ABI, provider),
+      );
 
-  const nativeBal = await retry(() => provider.getBalance(address));
+      tokenBalances = await Promise.all(contracts.map((contract) => contract.balanceOf(address)));
+      nativeBal = await provider.getBalance(address);
+      break;
+    } catch (e: any) {
+      continue;
+    }
+  }
+
+  if (!tokenBalances || !nativeBal) {
+    console.log('Error while getting token balances');
+    return null;
+  }
 
   let balancesInWei: Record<string, bigint> = {};
   Object.keys(MANTA_TOKENS).forEach((key, i) => {
