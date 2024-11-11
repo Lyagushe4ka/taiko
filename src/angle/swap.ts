@@ -12,7 +12,7 @@ export const swapCelo = async (wallet: Wallet, amount: bigint, proxy: string) =>
     axios.get(
       `https://li.quest/v1/quote?fromChain=42220&toChain=42220&fromToken=EURA&toToken=CELO&fromAddress=${
         wallet.address
-      }&fromAmount=${amount.toString()}&order=CHEAPEST&slippage=${LIMITS.slippage / 100}`,
+      }&fromAmount=${amount.toString()}&order=CHEAPEST`,
       { httpsAgent: agent, httpAgent: agent },
     ),
   );

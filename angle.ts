@@ -59,6 +59,8 @@ async function main() {
         }
 
         console.log(`Bridged EURA from Gnosis to CELO, tx: https://gnosisscan.io/tx/${bridge}`);
+
+        await timeout();
       }
 
       const xdaiBalance = await retry(() =>
@@ -73,6 +75,8 @@ async function main() {
         }
 
         console.log(`Refueled xDAI to POL, tx: https://gnosisscan.io/tx/${refuel}`);
+
+        await timeout();
       }
 
       let celoBalance = 0n;
