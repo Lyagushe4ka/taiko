@@ -2,7 +2,7 @@ import { ContractTransaction, Wallet } from 'ethers';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { execTx, makeApproveTx, retry } from '../utils';
 import axios from 'axios';
-import { CONFIG_CONSTANTS } from '../../deps/config';
+import { CONFIG_CONSTANTS, LIMITS } from '../../deps/config';
 import { ADDRESSES } from './constants';
 
 export const swapCelo = async (wallet: Wallet, amount: bigint, proxy: string) => {
@@ -12,7 +12,7 @@ export const swapCelo = async (wallet: Wallet, amount: bigint, proxy: string) =>
     axios.get(
       `https://li.quest/v1/quote?fromChain=42220&toChain=42220&fromToken=EURA&toToken=CELO&fromAddress=${
         wallet.address
-      }&fromAmount=${amount.toString()}&order=CHEAPEST`,
+      }&fromAmount=${amount.toString()}&order=CHEAPEST&slippage=${LIMITS.slippage / 100}`,
       { httpsAgent: agent, httpAgent: agent },
     ),
   );
