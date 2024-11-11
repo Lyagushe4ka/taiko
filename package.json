@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node index.ts",
     "pump": "ts-node scrollpump.ts",
-    "manta": "ts-node manta.ts"
+    "manta": "ts-node manta.ts",
+    "angle": "ts-node angle.ts"
   },
   "author": "",
   "license": "ISC",

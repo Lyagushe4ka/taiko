@@ -82,4 +82,22 @@ export const CONFIG_CONSTANTS = {
     '0x0Dc808adcE2099A9F62AA87D9670745AbA741746',
   ],
   revokeContracts: ['0x0c5d91E097A22E1454987652d7cCdb825f1Ec462'],
+
+  // Gnosis
+  gnosisRpcs: [
+    'https://rpc.gnosischain.com',
+    'https://gnosis-pokt.nodies.app',
+    'https://rpc.gnosis.gateway.fm',
+    'https://gnosis.drpc.org',
+    'https://rpc.ankr.com/gnosis',
+    'https://gnosis.blockpi.network/v1/rpc/public',
+  ],
+
+  // Celo
+  celoRpcs: [
+    'https://rpc.ankr.com/celo',
+    'https://1rpc.io/celo',
+    'https://forno.celo.org',
+    'https://celo.drpc.org',
+  ],
 };

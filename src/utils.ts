@@ -1,7 +1,8 @@
-import { ContractTransaction, JsonRpcProvider, TransactionReceipt, Wallet } from 'ethers';
+import { Contract, ContractTransaction, JsonRpcProvider, TransactionReceipt, Wallet } from 'ethers';
 import { LIMITS } from '../deps/config';
 import { TimeSeparated } from './types';
 import axios from 'axios';
+import { ABI } from './constants';
 
 let rates: Record<string, number> = {};
 let ratesLastUpdated = 0;
@@ -73,8 +74,8 @@ export const randomBetween = (min: number, max: number, roundTo?: number): numbe
 
 export async function retry<T>(
   fn: () => Promise<T>,
-  attempts = 4,
-  timeoutInSec = 6,
+  attempts = 5,
+  timeoutInSec = 8,
   logger?: (text: string, isError: boolean) => Promise<any>,
 ): Promise<T> {
   let response: T;
@@ -112,7 +113,7 @@ export async function retry<T>(
         }
       }
       if (attempts === 0) {
-        return Promise.reject(e.message);
+        return Promise.reject(e);
       }
       await sleep({ seconds: timeoutInSec }, undefined, false);
     }
@@ -207,4 +208,28 @@ export const getBinanceRatesToUSD = async (): Promise<Record<string, number>> =>
     }
   }
   return prices;
+};
+
+export const makeApproveTx = async (
+  wallet: Wallet,
+  tokenAddress: string,
+  spender: string,
+  amount: bigint,
+  rpc: string[],
+) => {
+  const contract = new Contract(tokenAddress, ABI);
+
+  const txData = await retry(() => contract.approve.populateTransaction(spender, amount));
+
+  const receipt = await execTx(rpc, txData, wallet.privateKey);
+
+  if (!receipt || receipt.status === 0) {
+    return null;
+  }
+
+  if (amount === 0n) {
+    console.log('Revoked on wallet: ', wallet.address);
+  }
+
+  return receipt.hash;
 };
