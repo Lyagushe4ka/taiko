@@ -76,7 +76,10 @@ async function main() {
       }
 
       let celoBalance = 0n;
-      while (celoBalance === 0n) {
+      let counter = 0;
+      while (celoBalance === 0n && counter < 30) {
+        counter++;
+
         celoBalance = await retry(() =>
           Promise.any(celoEuras.map((eur) => eur.balanceOf(address))),
         );
@@ -84,6 +87,13 @@ async function main() {
         console.log('Waiting for EURA balance on Celo');
 
         await sleep({ seconds: 15 });
+      }
+
+      if (celoBalance === 0n) {
+        console.log(`No EURA balance on Celo after ${counter} attempts, removing wallet from list`);
+        keys.splice(index, 1);
+        proxies.splice(index, 1);
+        continue;
       }
 
       const celoSwap = await swapCelo(wallet, celoBalance, proxy);
