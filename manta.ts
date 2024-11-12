@@ -71,6 +71,16 @@ async function main() {
 
       mantaDB.set(address, 'balances', balances.balancesInEther);
 
+      if (Number(balances.balancesInEther['ETH']) <= LIMITS.nativeBalanceMin) {
+        actions = actions.filter((action) => action !== 'utility');
+      }
+
+      if (actions.length === 0) {
+        console.log(`ETH balance too low on wallet: ${address}, removing it from the list.`);
+        keys.splice(index, 1);
+        continue;
+      }
+
       if (action === 'utility') {
         const hash = await makeUtilityTx(wallet, balances);
 

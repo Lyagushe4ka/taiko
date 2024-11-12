@@ -225,7 +225,13 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
     console.log(`Swapping ETH to ${tokenTo.ticker} on:`, dex);
 
     if (dex === 'openocean') {
-      return await openoceanSwap(wallet, MANTA_TOKENS.WETH, tokenTo, Number(formatEther(amount)));
+      const amountIn = amount - (amount % 10n ** 9n);
+      return await openoceanSwap(
+        wallet,
+        MANTA_TOKENS.WETH,
+        tokenTo,
+        parseFloat(formatEther(amountIn)),
+      );
     } else {
       return await gullSwap(wallet, MANTA_TOKENS.WETH, tokenTo, amount);
     }
@@ -247,11 +253,12 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
     console.log(`Swapping ${tokenIn.ticker} to ${tokenOut.ticker} on:`, dex);
 
     if (dex === 'openocean') {
+      const amountIn = balance - (balance % 10n ** BigInt(tokenIn.decimals / 2));
       return await openoceanSwap(
         wallet,
         tokenIn,
         tokenOut,
-        Number(formatUnits(balance, tokenIn.decimals)),
+        parseFloat(formatUnits(amountIn, tokenIn.decimals)),
       );
     } else {
       return await gullSwap(wallet, tokenIn, tokenOut, balance);
