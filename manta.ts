@@ -104,6 +104,7 @@ async function main() {
 
         console.log('\nSwapped to restore ETH balance\n');
         console.log(`Tx: https://pacific-explorer.manta.network/tx/${swap}\n\n`);
+        mantaDB.incr(address, 'currentSwapTxs');
 
         const balancesAfterSwap = await getBalances(address);
 
