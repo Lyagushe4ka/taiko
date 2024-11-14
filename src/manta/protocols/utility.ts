@@ -14,7 +14,6 @@ import { execTx, randomBetween, retry, rndArrElement } from '../../utils';
 import { MANTA_TOKENS, MANTA_WETH_ADDRESS, Tickers } from '../constants';
 import { CONFIG_CONSTANTS, LIMITS } from '../../../deps/config';
 import { Balances, getRoute } from '../utils';
-import { openoceanSwap } from './openocean';
 import { gullSwap } from './gull';
 import { mantaDB } from '../stats';
 
@@ -184,7 +183,7 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
   notZeroBalances = notZeroBalances.filter(([key]) => key !== 'WETH');
 
   if (notZeroBalances.length === 0) {
-    console.log('No tokens with balanc found to swap');
+    console.log('No tokens with balance found to swap');
     return null;
   }
 
@@ -212,29 +211,18 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
       }
     }
 
-    const toData = getRoute('WETH');
+    const toTicker = getRoute('WETH');
 
-    if (!toData) {
+    if (!toTicker) {
       console.log('No route found for ETH');
       return null;
     }
 
-    const { dex, token } = toData;
-    const tokenTo = MANTA_TOKENS[token];
+    const tokenTo = MANTA_TOKENS[toTicker];
 
-    console.log(`Swapping ETH to ${tokenTo.ticker} on:`, dex);
+    console.log(`Swapping ETH to ${tokenTo.ticker} on:`, 'gull');
 
-    if (dex === 'openocean') {
-      const amountIn = amount - (amount % 10n ** 9n);
-      return await openoceanSwap(
-        wallet,
-        MANTA_TOKENS.WETH,
-        tokenTo,
-        parseFloat(formatEther(amountIn)),
-      );
-    } else {
-      return await gullSwap(wallet, MANTA_TOKENS.WETH, tokenTo, amount);
-    }
+    return await gullSwap(wallet, MANTA_TOKENS.WETH, tokenTo, amount);
   } else {
     const [ticker, balance] = tokenWithBal;
     const tokenIn = MANTA_TOKENS[ticker as Tickers];
@@ -246,22 +234,10 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
       return null;
     }
 
-    const { dex, token } = toData;
+    const tokenOut = MANTA_TOKENS[toData];
 
-    const tokenOut = MANTA_TOKENS[token];
+    console.log(`Swapping ${tokenIn.ticker} to ${tokenOut.ticker} on:`, 'gull');
 
-    console.log(`Swapping ${tokenIn.ticker} to ${tokenOut.ticker} on:`, dex);
-
-    if (dex === 'openocean') {
-      const amountIn = balance - (balance % 10n ** BigInt(tokenIn.decimals / 2));
-      return await openoceanSwap(
-        wallet,
-        tokenIn,
-        tokenOut,
-        parseFloat(formatUnits(amountIn, tokenIn.decimals)),
-      );
-    } else {
-      return await gullSwap(wallet, tokenIn, tokenOut, balance);
-    }
+    return await gullSwap(wallet, tokenIn, tokenOut, balance);
   }
 }

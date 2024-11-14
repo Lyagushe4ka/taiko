@@ -42,29 +42,16 @@ export const MANTA_TOKENS: Record<Tickers, Token> = {
   },
 };
 
-export const ROUTES: Record<Tickers, Record<Dexes, Tickers[]>> = {
-  USDC: {
-    gull: ['USDT', 'MANTA'],
-    openocean: ['USDT', 'MANTA', 'WETH'],
-  },
-  USDT: {
-    gull: ['MUSD', 'USDC', 'USDZ'],
-    openocean: ['MANTA', 'USDC', 'WETH', 'MUSD'],
-  },
-  MANTA: {
-    gull: ['USDC', 'WETH'],
-    openocean: ['USDC', 'USDT', 'WETH'],
-  },
-  WETH: {
-    gull: ['MANTA'],
-    openocean: ['MANTA', 'USDC', 'USDT'],
-  },
-  USDZ: {
-    gull: ['USDT'],
-    openocean: [],
-  },
-  MUSD: {
-    gull: ['USDT'],
-    openocean: ['USDT'],
-  },
+export const ROUTES: Record<Tickers, Tickers[]> = {
+  USDC: ['USDT', 'MANTA', 'WETH'],
+
+  USDT: ['MUSD', 'USDC', 'USDZ', 'WETH'],
+
+  MANTA: ['USDC', 'WETH'],
+
+  WETH: ['MANTA', 'USDC', 'USDT'],
+
+  USDZ: ['USDT', 'WETH'],
+
+  MUSD: ['USDT', 'WETH'],
 };

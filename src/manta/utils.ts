@@ -71,32 +71,17 @@ export const getBalances = async (address: string): Promise<Balances | null> => 
   };
 };
 
-export const getRoute = (tokenIn: Tickers): { dex: Dexes; token: Tickers } | null => {
+export const getRoute = (tokenIn: Tickers): Tickers | null => {
   const ticker = tokenIn;
 
   const routes = ROUTES[ticker];
 
-  const notZeroRouts = Object.entries(routes).filter(([dex, tokens]) => tokens.length > 0);
-
-  if (notZeroRouts.length === 0) {
+  if (!routes) {
+    console.log('No routes found for token:', ticker);
     return null;
   }
 
-  if (notZeroRouts.length === 1) {
-    const [dex, tokens] = notZeroRouts[0];
-    const token = rndArrElement(tokens);
+  const tokenOut = rndArrElement(routes);
 
-    return {
-      dex: dex as Dexes,
-      token: token,
-    };
-  } else {
-    const [dex, tokens] = rndArrElement(notZeroRouts);
-    const token = rndArrElement(tokens);
-
-    return {
-      dex: dex as Dexes,
-      token: token,
-    };
-  }
+  return tokenOut;
 };

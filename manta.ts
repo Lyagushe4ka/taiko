@@ -1,9 +1,10 @@
 import { Wallet } from 'ethers';
-import { sleep, timeout } from './src/utils';
+import { rndArrElement, sleep, timeout } from './src/utils';
 import { readKeys } from './src/data';
 import { getBalances, mantaDB } from './src/manta';
-import { makeSwapTx, makeUtilityTx } from './src/manta/protocols';
+import { gullSwap, makeSwapTx, makeUtilityTx, wrapOrUnwrap } from './src/manta/protocols';
 import { LIMITS } from './deps/config';
+import { MANTA_TOKENS, Tickers } from './src/manta/constants';
 
 const originalConsoleLog = console.log;
 
@@ -72,12 +73,49 @@ async function main() {
       mantaDB.set(address, 'balances', balances.balancesInEther);
 
       if (Number(balances.balancesInEther['ETH']) <= LIMITS.nativeBalanceMin) {
-        actions = actions.filter((action) => action !== 'utility');
-      }
+        const notZeroBalances = Object.keys(balances.balancesInEther).filter(
+          (key) => key !== 'ETH' && +balances.balancesInUsd[key] > 0.4,
+        );
 
-      if (actions.length === 0) {
-        console.log(`ETH balance too low on wallet: ${address}, removing it from the list.`);
-        keys.splice(index, 1);
+        if (notZeroBalances.length === 0) {
+          console.log(
+            'No tokens with balance found to swap and ETH balance too low, removing wallet.',
+          );
+          keys.splice(index, 1);
+          continue;
+        }
+
+        const tokenFrom = rndArrElement(notZeroBalances) as Tickers;
+
+        const tokenFromBal = balances.balancesInWei[tokenFrom];
+
+        let swap: string | null = null;
+        if (tokenFrom === 'WETH') {
+          swap = await wrapOrUnwrap(wallet, tokenFromBal, false);
+        } else {
+          swap = await gullSwap(wallet, MANTA_TOKENS[tokenFrom], MANTA_TOKENS.WETH, tokenFromBal);
+
+          if (!swap) {
+            console.log('Error while making swap to restore ETH balance');
+            await sleep({ seconds: LIMITS.errorTimeout });
+            continue;
+          }
+        }
+
+        console.log('\nSwapped to restore ETH balance\n');
+        console.log(`Tx: https://pacific-explorer.manta.network/tx/${swap}\n\n`);
+
+        const balancesAfterSwap = await getBalances(address);
+
+        if (!balancesAfterSwap) {
+          console.log('\nError while getting balances\n');
+          await sleep({ seconds: LIMITS.errorTimeout });
+          continue;
+        }
+
+        mantaDB.set(address, 'balances', balancesAfterSwap.balancesInEther);
+
+        await timeout();
         continue;
       }
 

@@ -1,6 +1,6 @@
 import { Contract, formatEther, formatUnits, Overrides, parseUnits, Wallet } from 'ethers';
 import { GullABI } from '../abi';
-import { MANTA_WETH_ADDRESS, Token } from '../constants';
+import { MANTA_TOKENS, MANTA_WETH_ADDRESS, Token } from '../constants';
 import { execTx, getRate, retry } from '../../utils';
 import { CONFIG_CONSTANTS, LIMITS } from '../../../deps/config';
 import { approve } from './utility';
@@ -63,13 +63,34 @@ export const gullSwap = async (
     value: tokenIn.address === MANTA_WETH_ADDRESS ? amountIn : 0n,
   };
 
-  const data = [
-    amountIn,
-    minAmountOut,
-    [tokenInChecked, tokenOutChecked],
-    wallet.address,
-    deadline,
-  ] as any;
+  let route = [tokenInChecked, tokenOutChecked];
+
+  if (
+    [MANTA_WETH_ADDRESS, MANTA_TOKENS.USDC.address, MANTA_TOKENS.USDT.address].includes(
+      tokenInChecked,
+    ) &&
+    [MANTA_WETH_ADDRESS, MANTA_TOKENS.USDC.address, MANTA_TOKENS.USDT.address].includes(
+      tokenOutChecked,
+    )
+  ) {
+    route = [tokenInChecked, MANTA_TOKENS.MANTA.address, tokenOutChecked];
+  } else if (
+    [MANTA_WETH_ADDRESS, MANTA_TOKENS.MUSD.address, MANTA_TOKENS.USDZ.address].includes(
+      tokenInChecked,
+    ) &&
+    [MANTA_WETH_ADDRESS, MANTA_TOKENS.MUSD.address, MANTA_TOKENS.USDZ.address].includes(
+      tokenOutChecked,
+    )
+  ) {
+    route = [
+      tokenInChecked,
+      MANTA_TOKENS.MANTA.address,
+      MANTA_TOKENS.USDT.address,
+      tokenOutChecked,
+    ];
+  }
+
+  const data = [amountIn, minAmountOut, route, wallet.address, deadline] as any;
 
   if (tokenIn.address === MANTA_WETH_ADDRESS) {
     data.shift();
