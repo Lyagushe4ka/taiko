@@ -16,6 +16,7 @@ import { CONFIG_CONSTANTS, LIMITS } from '../../../deps/config';
 import { Balances, getRoute } from '../utils';
 import { gullSwap } from './gull';
 import { mantaDB } from '../stats';
+import { openoceanSwap } from './openocean';
 
 export const approve = async (
   wallet: Wallet,
@@ -220,9 +221,24 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
 
     const tokenTo = MANTA_TOKENS[toTicker];
 
-    console.log(`Swapping ETH to ${tokenTo.ticker} on:`, 'gull');
+    const rnd = Math.random() > 0.5;
 
-    return await gullSwap(wallet, MANTA_TOKENS.WETH, tokenTo, amount);
+    if (rnd) {
+      console.log(`Swapping ETH to ${tokenTo.ticker} on:`, 'gull');
+
+      return await gullSwap(wallet, MANTA_TOKENS.WETH, tokenTo, amount);
+    } else {
+      console.log(`Swapping ETH to ${tokenTo.ticker} on:`, 'openocean');
+
+      const amountIn = amount - (amount % 10n ** 9n);
+
+      return await openoceanSwap(
+        wallet,
+        MANTA_TOKENS.WETH,
+        tokenTo,
+        parseFloat(formatEther(amountIn)),
+      );
+    }
   } else {
     const [ticker, balance] = tokenWithBal;
     const tokenIn = MANTA_TOKENS[ticker as Tickers];
@@ -236,8 +252,23 @@ export async function makeSwapTx(wallet: Wallet, balances: Balances) {
 
     const tokenOut = MANTA_TOKENS[toData];
 
-    console.log(`Swapping ${tokenIn.ticker} to ${tokenOut.ticker} on:`, 'gull');
+    const rnd = Math.random() > 0.5;
 
-    return await gullSwap(wallet, tokenIn, tokenOut, balance);
+    if (rnd) {
+      console.log(`Swapping ${tokenIn.ticker} to ${tokenOut.ticker} on:`, 'openocean');
+
+      const amountIn = balance - (balance % 10n ** BigInt(tokenIn.decimals / 2));
+
+      return await openoceanSwap(
+        wallet,
+        tokenIn,
+        tokenOut,
+        parseFloat(formatUnits(amountIn, tokenIn.decimals)),
+      );
+    } else {
+      console.log(`Swapping ${tokenIn.ticker} to ${tokenOut.ticker} on:`, 'gull');
+
+      return await gullSwap(wallet, tokenIn, tokenOut, balance);
+    }
   }
 }
