@@ -233,8 +233,8 @@ export const approveTx = async (wallet: Wallet): Promise<boolean> => {
     console.log(`TX: https://taikoscan.io/tx/${receipt.hash}`);
     statsDB.incr(wallet.address, 'approveCurrent');
     return true;
-  } catch (e) {
-    console.log('Error while approving on wallet: ', wallet.address);
+  } catch (e: any) {
+    console.log('Error while approving on wallet: ', wallet.address, 'error: ', e.message);
     return false;
   }
 };
