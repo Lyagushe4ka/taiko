@@ -24,6 +24,8 @@ export const LIMITS = {
   approveTxMin: 5,
   approveTxMax: 10,
 
+  gwei: 0.15, // 0.15 Gwei
+
   // Manta
   slippage: 1.5, // 1.5% slippage
 

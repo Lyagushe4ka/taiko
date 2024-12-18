@@ -1,4 +1,4 @@
-import { Contract, TransactionResponse, Wallet } from 'ethers';
+import { Contract, formatUnits, parseUnits, TransactionResponse, Wallet } from 'ethers';
 import { readKeys, statsDB } from './data';
 import { ABI, CONTRACTS } from './constants';
 import { randomBetween, retry, rndArrElement } from './utils';
@@ -96,10 +96,11 @@ const wrap = async (wallet: Wallet): Promise<boolean> => {
   try {
     const feeData = await wallet.provider!.getFeeData();
 
+    const gasPrice = parseUnits(LIMITS.gwei.toString(), 'gwei');
+
     const tx: TransactionResponse = await contract.deposit({
       value: amount,
-      maxFeePerGas: (feeData.maxFeePerGas! / 100n) * 120n,
-      maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas! / 100n) * 120n,
+      gasPrice,
     });
 
     const receipt = await tx.wait();
@@ -127,9 +128,10 @@ const unwrap = async (wallet: Wallet): Promise<boolean> => {
   try {
     const feeData = await wallet.provider!.getFeeData();
 
+    const gasPrice = parseUnits(LIMITS.gwei.toString(), 'gwei');
+
     const tx: TransactionResponse = await contract.withdraw(wethBalance, {
-      maxFeePerGas: (feeData.maxFeePerGas! / 100n) * 120n,
-      maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas! / 100n) * 120n,
+      gasPrice,
     });
 
     const receipt = await tx.wait();
@@ -181,9 +183,10 @@ export const rubyTx = async (wallet: Wallet): Promise<boolean> => {
   try {
     const feeData = await wallet.provider!.getFeeData();
 
+    const gasPrice = parseUnits(LIMITS.gwei.toString(), 'gwei');
+
     const tx: TransactionResponse = await contract.vote({
-      maxFeePerGas: (feeData.maxFeePerGas! / 100n) * 120n,
-      maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas! / 100n) * 120n,
+      gasPrice,
     });
 
     const receipt = await tx.wait();
@@ -217,9 +220,10 @@ export const approveTx = async (wallet: Wallet): Promise<boolean> => {
   try {
     const feeData = await wallet.provider!.getFeeData();
 
+    const gasPrice = parseUnits(LIMITS.gwei.toString(), 'gwei');
+
     const tx: TransactionResponse = await contract.approve(spender, amount, {
-      maxFeePerGas: (feeData.maxFeePerGas! / 100n) * 120n,
-      maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas! / 100n) * 120n,
+      gasPrice,
     });
 
     const receipt = await tx.wait();
