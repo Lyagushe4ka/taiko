@@ -4,6 +4,7 @@ import { randomBetween } from './utils';
 import { LIMITS } from '../deps/config';
 
 export let WALLETS_STATS: Record<string, Stats>;
+export let WALLETS_SONY: Record<string, Omit<Stats, 'hasPoints' | 'claimedPoints'>>;
 
 export const statsDB = {
   load() {
@@ -64,6 +65,55 @@ export const statsDB = {
       './deps/stats.json',
       WALLETS_STATS ? JSON.stringify(WALLETS_STATS, null, 2) : '',
     );
+  },
+};
+
+export const soneiumDB = {
+  load() {
+    if (fs.existsSync('./deps/sony.json')) {
+      const fileData = fs.readFileSync('./deps/sony.json', 'utf8');
+
+      if (fileData === '') {
+        WALLETS_SONY = {};
+        return;
+      }
+
+      WALLETS_SONY = JSON.parse(fileData);
+    } else {
+      WALLETS_SONY = {};
+    }
+  },
+
+  init(wallet: string) {
+    const approveLimit = randomBetween(LIMITS.approveTxMin, LIMITS.approveTxMax, 0);
+    const wrapLimit = randomBetween(LIMITS.wrapTxMin, LIMITS.wrapTxMax, 0);
+    WALLETS_SONY[wallet] = {
+      approveLimit,
+      approveCurrent: 0,
+      wrapLimit,
+      wrapCurrent: 0,
+    };
+  },
+
+  get(wallet: string, statName: keyof Omit<Stats, 'hasPoints' | 'claimedPoints'>) {
+    if (!WALLETS_SONY[wallet]) {
+      this.init(wallet);
+    }
+    return WALLETS_SONY[wallet][statName];
+  },
+
+  incr(wallet: string, statName: 'approveCurrent' | 'wrapCurrent') {
+    if (!WALLETS_SONY[wallet]) {
+      this.init(wallet);
+    }
+
+    const value = this.get(wallet, statName) as number;
+
+    WALLETS_SONY[wallet][statName] = value + 1;
+  },
+
+  save() {
+    fs.writeFileSync('./deps/sony.json', WALLETS_SONY ? JSON.stringify(WALLETS_SONY, null, 2) : '');
   },
 };
 

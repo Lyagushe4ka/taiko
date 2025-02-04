@@ -63,6 +63,26 @@ export const CONFIG_CONSTANTS = {
     '0x9c2dc7377717603eB92b2655c5f2E7997a4945BD', // usdt stargate
   ],
 
+  soneium: {
+    rpc: 'https://rpc.soneium.org',
+    tokensToApprove: [
+      '0x4200000000000000000000000000000000000006', // weth
+      '0xbA9986D2381edf1DA03B0B9c1f8b00dc4AacC369', // usdce
+      '0x3A337a6adA9d885b6Ad95ec48F9b75f197b5AE35', // usdt
+      '0x2CAE934a1e84F693fbb78CA5ED3B0A6893259441', // astar
+      '0xf24e57b1cb00d98C31F04f86328e22E8fcA457fb', // sone
+      '0xc67476893C166c537afd9bc6bc87b3f228b44337', // nsastr
+    ],
+    contractsToApprove: [
+      '0x4200000000000000000000000000000000000006', // weth
+      '0xbA9986D2381edf1DA03B0B9c1f8b00dc4AacC369', // usdce
+      '0x3A337a6adA9d885b6Ad95ec48F9b75f197b5AE35', // usdt
+      '0x2CAE934a1e84F693fbb78CA5ED3B0A6893259441', // astar
+      '0xf24e57b1cb00d98C31F04f86328e22E8fcA457fb', // sone
+      '0xc67476893C166c537afd9bc6bc87b3f228b44337', // nsastr
+    ],
+  },
+
   // Manta
   mantaRpcs: [
     'https://1rpc.io/manta',
