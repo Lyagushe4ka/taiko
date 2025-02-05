@@ -1,5 +1,5 @@
 import { Contract, formatUnits, parseUnits, TransactionResponse, Wallet } from 'ethers';
-import { readKeys, statsDB } from './data';
+import { readKeys, soneiumDB } from './data';
 import { ABI, CONTRACTS } from './constants';
 import { randomBetween, retry, rndArrElement } from './utils';
 import { CONFIG_CONSTANTS, LIMITS } from '../deps/config';
@@ -30,7 +30,7 @@ const wrap = async (wallet: Wallet): Promise<boolean> => {
 
     console.log('ETH wrapped on wallet: ', wallet.address);
     console.log(`TX: https://soneium.blockscout.com/tx/${receipt.hash}`);
-    statsDB.incr(wallet.address, 'wrapCurrent');
+    soneiumDB.incr(wallet.address, 'wrapCurrent');
     return true;
   } catch (e) {
     console.log('Error while wrapping ETH on wallet: ', wallet.address);
@@ -59,7 +59,7 @@ const unwrap = async (wallet: Wallet): Promise<boolean> => {
 
     console.log('WETH unwrapped on wallet: ', wallet.address);
     console.log(`TX: https://soneium.blockscout.com/tx/${receipt.hash}`);
-    statsDB.incr(wallet.address, 'wrapCurrent');
+    soneiumDB.incr(wallet.address, 'wrapCurrent');
     return true;
   } catch (e) {
     console.log('Error while unwrapping WETH on wallet: ', wallet.address);
@@ -110,7 +110,7 @@ export const approveTxSony = async (wallet: Wallet): Promise<boolean> => {
 
     console.log('Approved on wallet: ', wallet.address);
     console.log(`TX: https://soneium.blockscout.com/tx/${receipt.hash}`);
-    statsDB.incr(wallet.address, 'approveCurrent');
+    soneiumDB.incr(wallet.address, 'approveCurrent');
     return true;
   } catch (e: any) {
     console.log('Error while approving on wallet: ', wallet.address, 'error: ', e.message);
