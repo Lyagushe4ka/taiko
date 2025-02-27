@@ -11,5 +11,7 @@ package-lock.json
 /deps/mantaStats.json
 /deps/anglestats.json
 /deps/generated-keys.txt
+/deps/generated-wallets.json
+
 
 test.ts
