@@ -8,7 +8,8 @@
     "pump": "ts-node scrollpump.ts",
     "manta": "ts-node manta.ts",
     "angle": "ts-node angle.ts",
-    "sony": "ts-node soneium.ts"
+    "sony": "ts-node soneium.ts",
+    "keys": "ts-node keys.ts"
   },
   "author": "",
   "license": "ISC",

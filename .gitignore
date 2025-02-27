@@ -10,5 +10,6 @@ package-lock.json
 /deps/pumpstats.json
 /deps/mantaStats.json
 /deps/anglestats.json
+/deps/generated-keys.txt
 
 test.ts
