@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { Wallet } from 'ethers';
 import fs from 'fs';
 import readline from 'readline';
+import os from 'os';
 
 function text(prompt: string): Promise<string> {
   return new Promise((resolve) => {
@@ -44,47 +45,49 @@ function text(prompt: string): Promise<string> {
     });
   }
 
-  const filename = await text('ENTER FILENAME TO SAVE WALLETS TO: ');
+  if (os.platform() === 'win32') {
+    if (
+      fs.existsSync('./deps/generated-keys.txt') ||
+      fs.existsSync('./deps/generated-wallets.json')
+    ) {
+      const parsedExisingKeys = fs
+        .readFileSync('./deps/generated-keys.txt', 'utf8')
+        .replaceAll('\r', '') // Remove carriage returns from Windows
+        .split('\n');
+      const exisingKeys = parsedExisingKeys.filter((key) => key !== '');
 
-  fs.writeFileSync(`./deps/generated-keys-${filename}.txt`, keys.join('\n'));
-  fs.writeFileSync(`./deps/generated-wallets-${filename}.json`, JSON.stringify(wallets, null, 2));
+      const parsedExistingWallets = fs.readFileSync('./deps/generated-wallets.json', 'utf8');
+      const existingWallets = parsedExistingWallets ? JSON.parse(parsedExistingWallets) : [];
 
-  console.log(
-    `Successfully saved ${amount} wallets to files: ` +
-      chalk.greenBright(`generated-keys-${filename}.txt`) +
-      ` and ` +
-      chalk.greenBright(`generated-wallets-${filename}.json`) +
-      ' in "deps" folder.',
-  );
+      if (exisingKeys.length > 0) {
+        console.log(`\nFound ${exisingKeys.length} existing wallets, merging...\n`);
+      }
 
-  // if (
-  //   fs.existsSync('./deps/generated-keys.txt') ||
-  //   fs.existsSync('./deps/generated-wallets.json')
-  // ) {
-  //   const parsedExisingKeys = fs
-  //     .readFileSync('./deps/generated-keys.txt', 'utf8')
-  //     .replaceAll('\r', '') // Remove carriage returns from Windows
-  //     .split('\n');
-  //   const exisingKeys = parsedExisingKeys.filter((key) => key !== '');
+      exisingKeys.push(...keys);
+      existingWallets.push(...wallets);
 
-  //   const parsedExistingWallets = fs.readFileSync('./deps/generated-wallets.json', 'utf8');
-  //   const existingWallets = parsedExistingWallets ? JSON.parse(parsedExistingWallets) : [];
+      fs.writeFileSync('./deps/generated-keys.txt', exisingKeys.join('\n'));
+      fs.writeFileSync('./deps/generated-wallets.json', JSON.stringify(existingWallets, null, 2));
 
-  //   if (exisingKeys.length > 0) {
-  //     console.log(`\nFound ${exisingKeys.length} existing wallets, merging...\n`);
-  //   }
+      console.log(`Successfully saved ${exisingKeys.length} wallets.`);
+    } else {
+      fs.writeFileSync('./deps/generated-keys.txt', keys.join('\n'));
+      fs.writeFileSync('./deps/generated-wallets.json', JSON.stringify(wallets, null, 2));
 
-  //   exisingKeys.push(...keys);
-  //   existingWallets.push(...wallets);
+      console.log(`Successfully saved ${amount} wallets.`);
+    }
+  } else {
+    const filename = await text('ENTER FILENAME TO SAVE WALLETS TO: ');
 
-  //   fs.writeFileSync('./deps/generated-keys.txt', exisingKeys.join('\n'));
-  //   fs.writeFileSync('./deps/generated-wallets.json', JSON.stringify(existingWallets, null, 2));
+    fs.writeFileSync(`./deps/generated-keys-${filename}.txt`, keys.join('\n'));
+    fs.writeFileSync(`./deps/generated-wallets-${filename}.json`, JSON.stringify(wallets, null, 2));
 
-  //   console.log(`Successfully saved ${exisingKeys.length} wallets.`);
-  // } else {
-  //   fs.writeFileSync('./deps/generated-keys.txt', keys.join('\n'));
-  //   fs.writeFileSync('./deps/generated-wallets.json', JSON.stringify(wallets, null, 2));
-
-  //   console.log(`Successfully saved ${amount} wallets.`);
-  // }
+    console.log(
+      `Successfully saved ${amount} wallets to files: ` +
+        chalk.greenBright(`generated-keys-${filename}.txt`) +
+        ` and ` +
+        chalk.greenBright(`generated-wallets-${filename}.json`) +
+        ' in "deps" folder.',
+    );
+  }
 })();
